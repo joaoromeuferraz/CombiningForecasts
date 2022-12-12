@@ -69,3 +69,54 @@ class MedianForecasts(BasePredictor):
             self.predictions[var] = pred.loc[:, cols]
         return self
 
+    
+class GeomAverageForecasts(BasePredictor):
+        
+    def __init__(self, variable_names: list or str, forecast_horizons: list, clean_data=False):
+        super().__init__(variable_names, clean_data)
+        self.forecast_horizons = forecast_horizons
+
+    def fit(self):
+        self.predictions = {}
+        for var in self.data.keys():            
+            col_names = self.data[var].columns.tolist()[1:]
+            pred = pd.DataFrame(self.data[var]).groupby(["DATE"])[col_names].apply(lambda x: np.exp((np.log(x)).mean()))
+            # print(pred)
+            cols = [var + str(h+2) for h in self.forecast_horizons]
+            self.predictions[var] = pred.loc[:, cols]
+        return self
+    
+    
+class HarmAverageForecasts(BasePredictor):
+        
+    def __init__(self, variable_names: list or str, forecast_horizons: list, clean_data=False):
+        super().__init__(variable_names, clean_data)
+        self.forecast_horizons = forecast_horizons
+
+    def fit(self):
+        self.predictions = {}
+        for var in self.data.keys():            
+            col_names = self.data[var].columns.tolist()[1:]
+            pred = pd.DataFrame(self.data[var]).groupby(["DATE"])[col_names].apply(lambda x: 1 / ((1 / x).mean()))
+            # print(pred)
+            cols = [var + str(h+2) for h in self.forecast_horizons]
+            self.predictions[var] = pred.loc[:, cols]
+        return self
+    
+    
+class AverageMedianForecasts(BasePredictor):
+        
+    def __init__(self, variable_names: list or str, forecast_horizons: list, clean_data=False):
+        super().__init__(variable_names, clean_data)
+        self.forecast_horizons = forecast_horizons
+
+    def fit(self):
+        self.predictions = {}
+        for var in self.data.keys():            
+            col_names = self.data[var].columns.tolist()[1:]
+            pred = pd.DataFrame(self.data[var]).groupby(["DATE"])[col_names].apply(lambda x: (x.mean() + x.median()) / 2)
+            # print(pred)
+            cols = [var + str(h+2) for h in self.forecast_horizons]
+            self.predictions[var] = pred.loc[:, cols]
+        return self
+    
